@@ -1,12 +1,17 @@
 # Djinni
 
 Djinni is a tool for generating cross-language type declarations and interface bindings. It's
-designed to connect C++ with either Java or Objective-C. Python support is available in an experimental version on the `python` branch.
+designed to connect C++ with either Java or Objective-C. Python support is available in an
+experimental version on the `python` branch.
 
-We at Dropbox use Djinni to interface cross-platform C++ library code with platform-specific
-Java and Objective-C on Android and iOS.
+Djinni can be used to interface cross-platform C++ library code with platform-specific Java and
+Objective-C on Android and iOS.  We announced Djinni at CppCon 2014. You can see the
+[slides](https://bit.ly/djinnitalk) and [video](https://bit.ly/djinnivideo).  For more info about
+Djinni and how others are using it, check out the community links at the end of this document.
 
-We announced Djinni at CppCon 2014. You can see the [slides](https://bit.ly/djinnitalk) and [video](https://bit.ly/djinnivideo).  For more info about Djinni and how others are using it, check out the community links at the end of this document.
+__Maintenance note:__ This repo is stable but no longer maintained by Dropbox.  If you have
+questions or want to talk to other users of Djinni, you can join the Slack community via the
+link at the end of this document.
 
 ## Main Features
 - Generates parallel C++, Java and Objective-C type definitions from a single interface
@@ -110,6 +115,7 @@ When the Djinni file(s) are ready, from the command line or a bash script you ca
        \
        --jni-out JNI_OUTPUT_FOLDER \
        --ident-jni-class NativeFooBar \ # This adds a "Native" prefix to JNI class
+       --ident-jni-file NativeFooBar \ # This adds a prefix to the JNI filenames otherwise the cpp and jni filenames are the same.
        \
        --objc-out OBJC_OUTPUT_FOLDER \
        --objc-type-prefix DB \ # Apple suggests Objective-C classes have a prefix for each defined type.
@@ -521,7 +527,7 @@ In order to do that, there are two steps needed:
 * There are a set of [tutorials](http://mobilecpptutorials.com/) for building a cross-platform app using Djinni.
 * [mx3](https://github.com/libmx3/mx3) is an example project demonstrating use of Djinni and other tools.
 * [Slides](https://bit.ly/djinnitalk) and [video](https://bit.ly/djinnivideo) from the CppCon 2014 talk where we introduced Djinni.
-* [Slides](https://bit.ly/djinnitalk2) and [video](https://bit.ly/djinnivideo2) from the CppCon 2015 about Djinni implementation techniques, and the addition of Python.
+* [Slides](https://bit.ly/djinnitalk2) and [video](https://bit.ly/djinnivideo2) from the CppCon 2015 talk about Djinni implementation techniques, and the addition of Python.
 * You can see a [CppCon 2014 talk](https://www.youtube.com/watch?v=5AZMEm3rZ2Y) by app developers at Dropbox about their cross-platform experiences.
 
 ## Authors
@@ -534,6 +540,5 @@ In order to do that, there are two steps needed:
 - Andrew Twyman
 
 ## Contacts
-- Xianwen Chen - `xianwen@dropbox.com`
-- Andrew Twyman - `atwyman@dropbox.com`
+- Andrew Twyman - `artwymana+djinni@gmail.com`
 - Jacob Potter - `djinni@j4cbo.com`
