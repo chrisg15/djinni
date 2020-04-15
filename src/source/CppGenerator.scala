@@ -71,7 +71,7 @@ class CppGenerator(spec: Spec) extends Generator(spec) {
     val underlyingType = if(e.flags) flagsType else enumType
 
     val stringRetType = marshal.typename(stringExpr)
-    val toStringFunctionName = idCpp.method(s"${self}_to_string")
+    val toStringFunctionName = idCpp.method("toString")
 
     writeHppFile(ident, origin, refs.hpp, refs.hppFwds, w => {
       w.w(s"enum class $self : $underlyingType").bracedSemi {
@@ -99,7 +99,15 @@ class CppGenerator(spec: Spec) extends Generator(spec) {
         }
       }
       if(spec.cppEnumSerializers) {
-        w.wl.wl(s"$stringRetType $toStringFunctionName(${withCppNs(self)} arg);")
+        w.wl.w(s"constexpr std::string_view $toStringFunctionName(const $self& arg)").braced {
+          w.w("switch(arg)").braced {
+            for (o <- normalEnumOptions(e)) {
+              val caseItem =s"${idCpp.enum(o.ident.name)}"
+              w.wl(s"case $self::$caseItem: return ${q(caseItem)};")
+            }
+            w.wl(s"default: return ${q(s"$self enum value not supported")};")
+          }
+        }
       }
     },
     w => {
@@ -119,21 +127,6 @@ class CppGenerator(spec: Spec) extends Generator(spec) {
         )
       }
     })
-    if(spec.cppEnumSerializers) {
-      writeCppFile(ident, origin, refs.cpp, 
-        w => {
-          w.w(s"$stringRetType $toStringFunctionName(${withCppNs(self)} arg)").braced {
-            w.w("switch(arg)").braced {
-              for (o <- normalEnumOptions(e)) {
-                val enumItem = withCppNs(s"$self::${idCpp.enum(o.ident.name)}")
-                w.wl(s"case $enumItem: return ${q(enumItem)};")
-              }
-              val convertValToString = (if (spec.cppUseWideStrings) "std::to_wstring" else "std::to_string") + s"(static_cast<${underlyingType}>(arg))"
-              w.wl(s"default: return $stringRetType(${q(s"$toStringFunctionName: not supported enum value: ")}) + $convertValToString;")
-            }
-          }
-      })
-    }
   }
 
   def shouldConstexpr(c: Const) = {
