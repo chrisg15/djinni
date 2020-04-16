@@ -64,7 +64,9 @@ class CppGenerator(spec: Spec) extends Generator(spec) {
     }
 
     val stringExpr = MExpr(MString, Seq.empty[MExpr])
-    refs.find(stringExpr, false)
+    if(spec.cppEnumSerializers) {
+      refs.find(stringExpr, false)
+    }
 
     val flagsType = "unsigned"
     val enumType = "int"
