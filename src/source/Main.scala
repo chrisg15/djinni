@@ -32,6 +32,7 @@ object Main {
     var cppFileIdentStyle: IdentConverter = IdentStyle.underLower
     var cppOptionalTemplate: String = "std::optional"
     var cppOptionalHeader: String = "<optional>"
+    var cppNulloptTemplate: String = "std::nullopt"
     var cppEnumHashWorkaround : Boolean = true
     var cppNnHeader: Option[String] = None
     var cppNnType: Option[String] = None
@@ -85,6 +86,14 @@ object Main {
     var yamlOutFolder: Option[File] = None
     var yamlOutFile: Option[String] = None
     var yamlPrefix: String = ""
+    var pyOutFolder: Option[File] = None
+    var pyPackageName: String = ""
+    var pyIdentStyle = IdentStyle.pythonDefault
+    var cWrapperOutFolder: Option[File] = None
+    var pycffiPackageName: String = ""
+    var pycffiDynamicLibList: String = ""
+    var pycffiOutFolder: Option[File] = None
+    var pyImportPrefix: String = ""
 
     val argParser = new scopt.OptionParser[Unit]("djinni") {
 
@@ -142,6 +151,8 @@ object Main {
         .text("The template to use for optional values (default: \"std::optional\")")
       opt[String]("cpp-optional-header").valueName("<header>").foreach(x => cppOptionalHeader = x)
         .text("The header to use for optional values (default: \"<optional>\")")
+      opt[String]("cpp-nullopt-template").valueName("<template>").foreach(x => cppNulloptTemplate = x)
+        .text("The template to use for nullopt values (default: \"" + cppNulloptTemplate + "\")")
       opt[Boolean]("cpp-enum-hash-workaround").valueName("<true/false>").foreach(x => cppEnumHashWorkaround = x)
         .text("Work around LWG-2148 by generating std::hash specializations for C++ enums (default: true)")
       opt[String]("cpp-nn-header").valueName("<header>").foreach(x => cppNnHeader = Some(x))
@@ -211,6 +222,18 @@ object Main {
         .text("Optional file in which to write the list of output files produced.")
       opt[Boolean]("skip-generation").valueName("<true/false>").foreach(x => skipGeneration = x)
         .text("Way of specifying if file generation should be skipped (default: false)")
+      opt[File]("py-out").valueName("<out-folder>").foreach(x => pyOutFolder = Some(x))
+        .text("The output folder for Python files (Generator disabled if unspecified).")
+      opt[File]("pycffi-out").valueName("<out-folder>").foreach(x => pycffiOutFolder = Some(x))
+        .text("The output folder for PyCFFI files (Generator disabled if unspecified).")
+      opt[String]("pycffi-package-name").valueName("...").foreach(x => pycffiPackageName= x)
+        .text("The package name to use for the generated PyCFFI classes.")
+      opt[String]("pycffi-dynamic-lib-list").valueName("...").foreach(x => pycffiDynamicLibList= x)
+        .text("The names of the dynamic libraries to be linked with PyCFFI.")
+      opt[File]("c-wrapper-out").valueName("<out-folder>").foreach(x => cWrapperOutFolder = Some(x))
+        .text("The output folder for Wrapper C files (Generator disabled if unspecified).")
+      opt[String]("py-import-prefix").valueName("<import-prefix>").foreach(pyImportPrefix = _)
+        .text("The import prefix used within python genereated files (default: \"\")")
 
       note("\nIdentifier styles (ex: \"FooBar\", \"fooBar\", \"foo_bar\", \"FOO_BAR\", \"m_fooBar\")\n")
       identStyle("ident-java-enum",      c => { javaIdentStyle = javaIdentStyle.copy(enum = c) })
@@ -278,6 +301,7 @@ object Main {
         inFileListWriter.get.close()
       }
     }
+    val idlFileName = idlFile.getName
 
     // Resolve names in IDL file, check types.
     System.out.println("Resolving...")
@@ -326,6 +350,7 @@ object Main {
       cppFileIdentStyle,
       cppOptionalTemplate,
       cppOptionalHeader,
+      cppNulloptTemplate,
       cppEnumHashWorkaround,
       cppNnHeader,
       cppNnType,
@@ -362,12 +387,23 @@ object Main {
       skipGeneration,
       yamlOutFolder,
       yamlOutFile,
-      yamlPrefix)
-
+      yamlPrefix,
+      pyOutFolder,
+      pyPackageName,
+      pyIdentStyle,
+      pycffiOutFolder,
+      pycffiPackageName,
+      pycffiDynamicLibList,
+      idlFileName,
+      cWrapperOutFolder,
+      pyImportPrefix)
 
     try {
       val r = generate(idl, outSpec)
-      r.foreach(e => System.err.println("Error generating output: " + e))
+      r.foreach(e => {
+        System.err.println("Error generating output: " + e)
+        System.exit(1)
+      })
     }
     finally {
       if (outFileListWriter.isDefined) {
